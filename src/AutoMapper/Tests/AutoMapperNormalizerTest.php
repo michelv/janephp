@@ -34,7 +34,7 @@ class AutoMapperNormalizerTest extends AutoMapperBaseTest
 
     public function testDenormalize(): void
     {
-        $source = ['id' => 1, 'name' => 'Jack', 'age' => 37];
+        $source = ['id' => 1, 'name' => 'Jack', 'age' => 37, 'lovesToDance' => true];
 
         /** @var Fixtures\User $denormalized */
         $denormalized = $this->normalizer->denormalize($source, Fixtures\User::class);
@@ -42,6 +42,62 @@ class AutoMapperNormalizerTest extends AutoMapperBaseTest
         self::assertEquals($source['id'], $denormalized->getId());
         self::assertEquals($source['name'], $denormalized->name);
         self::assertEquals($source['age'], $denormalized->age);
+        self::assertEquals($source['lovesToDance'], $denormalized->lovesToDance);
+    }
+
+    public function testDenormalizeTypedObject(): void
+    {
+        if (PHP_VERSION_ID < 70400) {
+            self::markTestSkipped();
+        }
+
+        $source = ['id' => '1', 'name' => 'Jack', 'age' => 37, 'money' => '12.34'];
+
+        /** @var Fixtures\TypedUser $denormalized */
+        $denormalized = $this->normalizer->denormalize($source, Fixtures\TypedUser::class);
+        self::assertInstanceOf(Fixtures\TypedUser::class, $denormalized);
+        self::assertEquals((int) $source['id'], $denormalized->getId());
+        self::assertEquals($source['name'], $denormalized->name);
+        self::assertEquals($source['age'], $denormalized->age);
+        self::assertEquals((float) $source['money'], $denormalized->money);
+    }
+
+    /**
+     * @dataProvider provideBooleanishValues
+     */
+    public function testDenormalizeTypedObjectWithBooleanishValue($value, $expectedDenormalizedValue, $expectedException = null): void
+    {
+        if (PHP_VERSION_ID < 70400) {
+            self::markTestSkipped();
+        }
+
+        $source = ['id' => 1, 'name' => 'Jack', 'age' => 37, 'lovesToDance' => $value];
+
+        if (!is_null($expectedException)) {
+            $this->expectException($expectedException);
+        }
+
+        /** @var Fixtures\TypedUser $denormalized */
+        $denormalized = $this->normalizer->denormalize($source, Fixtures\TypedUser::class);
+        self::assertInstanceOf(Fixtures\TypedUser::class, $denormalized);
+
+        if (!is_null($expectedDenormalizedValue)) {
+            self::assertSame($expectedDenormalizedValue, $denormalized->lovesToDance);
+        }
+    }
+
+    public function provideBooleanishValues()
+    {
+        yield [true, true];
+        yield [false, false];
+        yield [0, false];
+        yield [1, true];
+        yield ['true', true];
+        yield ['false', false];
+        yield [10, null, \TypeError::class];
+        yield [[], null, \TypeError::class];
+        yield [new \stdClass(), null, \TypeError::class];
+        yield ['pizza', null, \TypeError::class];
     }
 
     public function testSupportsNormalization(): void
