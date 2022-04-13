@@ -50,6 +50,11 @@ class User
     public $languages;
 
     /**
+     * @var bool
+     */
+    public $lovesToDance;
+
+    /**
      * @var mixed[]
      */
     protected $properties = [];
@@ -63,6 +68,7 @@ class User
         $this->createdAt = new \DateTime();
         $this->money = 20.10;
         $this->languages = new \ArrayObject();
+        $this->lovesToDance = true;
     }
 
     /**

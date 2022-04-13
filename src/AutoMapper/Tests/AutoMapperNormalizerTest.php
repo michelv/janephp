@@ -21,13 +21,15 @@ class AutoMapperNormalizerTest extends AutoMapperBaseTest
     public function testNormalize(): void
     {
         $object = new Fixtures\User(1, 'Jack', 37);
-        $expected = ['id' => 1, 'name' => 'Jack', 'age' => 37];
+        $object->lovesToDance = true;
+        $expected = ['id' => 1, 'name' => 'Jack', 'age' => 37, 'lovesToDance' => true];
 
         $normalized = $this->normalizer->normalize($object);
         self::assertIsArray($normalized);
         self::assertEquals($expected['id'], $normalized['id']);
         self::assertEquals($expected['name'], $normalized['name']);
         self::assertEquals($expected['age'], $normalized['age']);
+        self::assertEquals($expected['lovesToDance'], $normalized['lovesToDance']);
     }
 
     public function testDenormalize(): void
